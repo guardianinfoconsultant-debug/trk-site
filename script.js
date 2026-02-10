@@ -1,32 +1,49 @@
-let userAddress = "";
+let provider;
+let signer;
+let contract;
+
+const contractAddress = "0x613EcF68Cc6d3E34b3Fe836F928055AD4f142200";
+
+const abi = [
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_referrer", "type": "address" }
+    ],
+    "name": "register",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
 
 async function connectWallet() {
   if (window.ethereum) {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
-    userAddress = await signer.getAddress();
+    await ethereum.request({ method: 'eth_requestAccounts' });
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
 
-    document.getElementById("wallet").innerText =
-      "Connected Wallet: " + userAddress;
+    const address = await signer.getAddress();
+    document.getElementById("wallet").innerHTML =
+      "Connected: " + address;
+
+    contract = new ethers.Contract(contractAddress, abi, signer);
   } else {
-    alert("Install MetaMask");
+    alert("Install MetaMask!");
   }
 }
 
-function register() {
-  const ref = document.getElementById("ref").value;
-
-  if (!userAddress) {
-    alert("Connect wallet first");
+async function registerUser() {
+  if (!contract) {
+    alert("Connect wallet first!");
     return;
   }
 
-  if (ref === "") {
-    alert("Enter referral address");
-    return;
+  try {
+    const tx = await contract.register("0x0000000000000000000000000000000000000000");
+    await tx.wait();
+    alert("User Registered on Blockchain ✅");
+  } catch (err) {
+    console.error(err);
+    alert("Error: " + err.message);
   }
-
-  document.getElementById("status").innerText =
-    "Registered successfully with referral: " + ref;
 }
