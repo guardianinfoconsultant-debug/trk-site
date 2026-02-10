@@ -1,49 +1,35 @@
+const contractAddress = "0xbF95259C322c5ec545D53C340d7E208BcC6155B8";
+
+const abi = [PASTE_YOUR_ABI_HERE];
+
 let provider;
 let signer;
 let contract;
 
-const contractAddress = "0x613EcF68Cc6d3E34b3Fe836F928055AD4f142200";
-
-const abi = [
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_referrer", "type": "address" }
-    ],
-    "name": "register",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-];
-
 async function connectWallet() {
   if (window.ethereum) {
-    await ethereum.request({ method: 'eth_requestAccounts' });
     provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
 
     const address = await signer.getAddress();
-    document.getElementById("wallet").innerHTML =
-      "Connected: " + address;
+    document.getElementById("wallet").innerText = "Connected: " + address;
 
     contract = new ethers.Contract(contractAddress, abi, signer);
   } else {
-    alert("Install MetaMask!");
+    alert("Install MetaMask");
   }
 }
 
 async function registerUser() {
-  if (!contract) {
-    alert("Connect wallet first!");
-    return;
-  }
+  const ref = document.getElementById("ref").value;
 
-  try {
-    const tx = await contract.register("0x0000000000000000000000000000000000000000");
-    await tx.wait();
-    alert("User Registered on Blockchain ✅");
-  } catch (err) {
-    console.error(err);
-    alert("Error: " + err.message);
-  }
+  const fee = await contract.joinFee();
+
+  const tx = await contract.register(ref, {
+    value: fee
+  });
+
+  await tx.wait();
+  alert("Registered Successfully on Blockchain!");
 }
