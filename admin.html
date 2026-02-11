@@ -1,128 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TRK Admin Panel</title>
+  <title>TRK Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-
-  <style>
-    body{
-      font-family: Arial;
-      padding:20px;
-      background:#0d1117;
-      color:white;
-    }
-    button{
-      padding:10px 15px;
-      margin:5px;
-      font-size:16px;
-      cursor:pointer;
-      background:#00ff99;
-      border:none;
-    }
-    input{
-      padding:8px;
-      width:350px;
-      font-size:16px;
-    }
-    hr{
-      margin:25px 0;
-    }
-  </style>
 </head>
-
 <body>
 
-<h2>🚀 TRK ADMIN PANEL (LIVE)</h2>
+<h2>Admin Panel</h2>
 
-<button onclick="connect()">Connect Admin Wallet</button>
+<button onclick="connect()">Connect</button>
 <p id="adminWallet"></p>
 
-<hr>
-
-<h3>📊 Contract Stats</h3>
 <button onclick="getStats()">Load Stats</button>
-
 <p>Total Users: <span id="users">0</span></p>
 <p>Contract Balance: <span id="balance">0</span></p>
 
-<hr>
+<input id="checkAddr" placeholder="Wallet">
+<button onclick="checkUser()">Check User</button>
 
-<h3>🔍 Check Any User</h3>
-<input id="checkAddr" placeholder="Enter wallet address" />
-<button onclick="checkUser()">Check</button>
-
-<p>User ID: <span id="uid"></span></p>
+<p>ID: <span id="uid"></span></p>
 <p>Referrer: <span id="ref"></span></p>
 <p>Earnings: <span id="earn"></span></p>
 
-<hr>
+<div id="allUsers"></div>
 
-<h3>📋 All Users List</h3>
-<button onclick="loadAllUsers()">Load All Users</button>
-<div id="allUsers" style="margin-top:15px;"></div>
-
-
-<script>
-let provider, signer, contract;
-
-const contractAddress = "0xf5e3A22fFC6A30BC83950CF81e890CA42908648F";
-
-const abi = [
- "function getUser(address) view returns(uint,address,uint,bool)",
- "function checkEarnings(address) view returns(uint)",
- "function userCountView() view returns(uint)",
- "function idToAddress(uint) view returns(address)"
-];
-
-async function connect(){
-  if (!window.ethereum) {
-    alert("Install MetaMask");
-    return;
-  }
-
-  provider = new ethers.providers.Web3Provider(window.ethereum);
-  await provider.send("eth_requestAccounts", []);
-  signer = provider.getSigner();
-
-  const addr = await signer.getAddress();
-  document.getElementById("adminWallet").innerText = "Connected: " + addr;
-
-  contract = new ethers.Contract(contractAddress, abi, signer);
-}
-
-async function getStats(){
-  const users = await contract.userCountView();
-  const bal = await provider.getBalance(contractAddress);
-
-  document.getElementById("users").innerText = users;
-  document.getElementById("balance").innerText =
-    ethers.utils.formatEther(bal);
-}
-
-async function checkUser(){
-  const a = document.getElementById("checkAddr").value;
-
-  const u = await contract.getUser(a);
-  const e = await contract.checkEarnings(a);
-
-  document.getElementById("uid").innerText = u[0];
-  document.getElementById("ref").innerText = u[1];
-  document.getElementById("earn").innerText =
-    ethers.utils.formatEther(e);
-}
-
-async function loadAllUsers(){
-  const total = await contract.userCountView();
-  let html = "";
-
-  for(let i=1;i<=total;i++){
-    const addr = await contract.idToAddress(i);
-    html += i + " : " + addr + "<br>";
-  }
-
-  document.getElementById("allUsers").innerHTML = html;
-}
-</script>
-
+<script src="admin.js"></script>
 </body>
 </html>
