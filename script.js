@@ -1,126 +1,99 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>TRK DApp</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <style>
-        body{font-family:Arial;background:#111;color:#fff;text-align:center}
-        button{padding:10px 20px;margin:5px;font-size:16px}
-        input{padding:8px;width:320px}
-        .box{border:1px solid #444;padding:15px;margin:15px}
-    </style>
-</head>
-<body>
+let provider;
+let signer;
+let contract;
 
-<h2>TRK Smart Contract DApp</h2>
-
-<button onclick="connectWallet()">Connect Wallet</button>
-<p id="wallet"></p>
-
-<div class="box">
-    <h3>Your Referral Link</h3>
-    <p id="refLink"></p>
-</div>
-
-<div class="box">
-    <input id="ref" placeholder="Referrer address">
-    <br><br>
-    <button onclick="register()">Register</button>
-</div>
-
-<div class="box">
-    <h3>User Info</h3>
-    <p>User ID: <span id="uid">0</span></p>
-    <p>Earnings: <span id="earn">0</span> BNB</p>
-    <button onclick="withdraw()">Withdraw</button>
-</div>
-
-<div class="box">
-    <button onclick="totalUsers()">Total Users</button>
-    <p id="tusers"></p>
-</div>
-
-<div class="box">
-    <button onclick="contractBalance()">Contract Balance</button>
-    <p id="cbal"></p>
-</div>
-
-<script>
-let provider, signer, contract;
-
-const contractAddress = "0xD19FF9d99D2e2B6Fec385d6276e93e4DceCc63dA";
+const contractAddress = "0xf5e3A22fFC6A30BC83950CF81e890CA42908648F";
 
 const abi = [
- "function register(address _referrer) payable",
- "function joinFee() view returns(uint256)",
- "function getUser(address) view returns(uint256,address,uint256,bool)",
- "function checkEarnings(address) view returns(uint256)",
- "function withdraw()",
- "function userCount() view returns(uint256)"
+  "function register(address _referrer) payable",
+  "function getUser(address) view returns(uint,address,uint,bool)",
+  "function checkEarnings(address) view returns(uint)",
+  "function withdraw()",
+  "function userCountView() view returns(uint)",
+  "function joinFee() view returns(uint256)"
 ];
 
-function getRef(){
-  const url = new URLSearchParams(window.location.search);
-  return url.get("ref");
+function getRefFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("ref");
 }
 
-async function connectWallet(){
-    if(!window.ethereum){ alert("Install MetaMask"); return; }
+window.addEventListener('load', () => {
+  document.getElementById("connectBtn").onclick = connectWallet;
+  document.getElementById("registerBtn").onclick = registerUser;
+  document.getElementById("withdrawBtn").onclick = withdrawEarnings;
+  document.getElementById("totalUsersBtn").onclick = getTotalUsers;
 
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
-    const addr = await signer.getAddress();
+  const urlRef = getRefFromURL();
+  if (urlRef) {
+    document.getElementById("ref").value = urlRef;
+  }
+});
 
-    document.getElementById("wallet").innerText = "Connected: " + addr;
+async function connectWallet() {
+  if (!window.ethereum) {
+    alert("Install MetaMask");
+    return;
+  }
 
-    contract = new ethers.Contract(contractAddress, abi, signer);
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = provider.getSigner();
+  const address = await signer.getAddress();
 
-    document.getElementById("refLink").innerText =
-      window.location.origin + "?ref=" + addr;
+  document.getElementById("wallet").innerHTML = "Connected: " + address;
 
-    const urlRef = getRef();
-    if(urlRef) document.getElementById("ref").value = urlRef;
+  contract = new ethers.Contract(contractAddress, abi, signer);
 
-    loadUser(addr);
-    setInterval(()=>loadUser(addr),5000);
+  const myRefLink = window.location.origin + "/?ref=" + address;
+  document.getElementById("refBox").innerHTML =
+    "Your Referral Link:<br>" + myRefLink;
+
+  loadUserData(address);
+  setInterval(() => loadUserData(address), 5000);
 }
 
-async function register(){
-    const ref = document.getElementById("ref").value;
+async function registerUser() {
+  if (!contract) {
+    alert("Connect wallet first");
+    return;
+  }
+
+  const ref = document.getElementById("ref").value;
+
+  try {
     const fee = await contract.joinFee();
-    const tx = await contract.register(ref,{value:fee});
+    const tx = await contract.register(ref, { value: fee });
     await tx.wait();
-    alert("Registered");
+    alert("Registered Successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Transaction Failed");
+  }
 }
 
-async function loadUser(addr){
-    try{
-        const u = await contract.getUser(addr);
-        const e = await contract.checkEarnings(addr);
-        document.getElementById("uid").innerText = u[0];
-        document.getElementById("earn").innerText =
-          ethers.utils.formatEther(e);
-    }catch{}
+async function loadUserData(address) {
+  try {
+    const user = await contract.getUser(address);
+    const earnings = await contract.checkEarnings(address);
+
+    document.getElementById("uid").innerText = user[0];
+    document.getElementById("earn").innerText =
+      ethers.utils.formatEther(earnings);
+  } catch (e) {}
 }
 
-async function withdraw(){
+async function withdrawEarnings() {
+  try {
     const tx = await contract.withdraw();
     await tx.wait();
-    alert("Withdraw Done");
+    alert("Withdraw Successful");
+  } catch {
+    alert("Withdraw Failed");
+  }
 }
 
-async function totalUsers(){
-    const c = await contract.userCount();
-    document.getElementById("tusers").innerText = c;
+async function getTotalUsers() {
+  const count = await contract.userCountView();
+  document.getElementById("tusers").innerText = count;
 }
-
-async function contractBalance(){
-    const b = await provider.getBalance(contractAddress);
-    document.getElementById("cbal").innerText =
-      ethers.utils.formatEther(b);
-}
-</script>
-
-</body>
-</html>
