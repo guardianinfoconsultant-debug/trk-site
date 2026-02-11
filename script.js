@@ -47,6 +47,11 @@ async function connectWallet() {
 
   contract = new ethers.Contract(contractAddress, abi, signer);
 
+  // Show referral link
+  const myRefLink = window.location.origin + "/?ref=" + address;
+  document.getElementById("refBox").innerHTML =
+    "Your Referral Link:<br><a href='"+myRefLink+"' target='_blank'>"+myRefLink+"</a>";
+
   loadUserData(address);
   setInterval(() => loadUserData(address), 5000);
 }
