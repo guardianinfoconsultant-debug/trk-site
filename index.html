@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>TRK Blockchain DApp</title>
+
+  <!-- Ethers load -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
   <style>
@@ -19,35 +21,51 @@
       border:none;
       cursor:pointer;
       margin:10px;
+      border-radius:8px;
     }
     input{
       padding:10px;
       width:320px;
       font-size:16px;
       margin:10px;
+      border-radius:6px;
+      border:none;
     }
-    #box{
-      margin-top:30px;
+    .box{
+      margin-top:25px;
       font-size:18px;
+      background:#161b22;
+      padding:20px;
+      border-radius:10px;
+      display:inline-block;
     }
+    a{ color:#00ff99; }
   </style>
 </head>
 
 <body>
 
-<h1>⛓ TRK Blockchain</h1>
+<h1>⛓ TRK Blockchain Referral DApp</h1>
+
+<p>
+Welcome to TRK earning system.<br>
+Step 1: Connect Wallet → Step 2: Register → Step 3: Share Referral Link<br>
+Joining Fee: <b>0.01 ETH</b>
+</p>
 
 <button id="connectBtn">Connect Wallet</button>
 <div id="wallet"></div>
+
+<div id="refBox"></div>
 
 <br>
 
 <input id="ref" placeholder="Referral Address" />
 <br>
 <button id="registerBtn">Register</button>
-<button id="withdrawBtn">Withdraw</button>
+<button id="withdrawBtn">Withdraw Earnings</button>
 
-<div id="box">
+<div class="box">
   <p>User ID: <span id="uid">-</span></p>
   <p>Earnings: <span id="earn">0</span> ETH</p>
 </div>
