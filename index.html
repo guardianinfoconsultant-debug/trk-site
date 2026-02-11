@@ -2,8 +2,6 @@
 <html>
 <head>
   <title>TRK Blockchain DApp</title>
-
-  <!-- Ethers -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 
   <style>
@@ -27,9 +25,7 @@
       width:320px;
       font-size:16px;
     }
-    hr{
-      margin:30px 0;
-    }
+    hr{ margin:30px 0; }
   </style>
 </head>
 
@@ -37,13 +33,11 @@
 
 <h1>⛓ TRK Blockchain</h1>
 
-<!-- CONNECT WALLET -->
 <button id="connectBtn">Connect Wallet</button>
 <div id="wallet"></div>
 
 <hr>
 
-<!-- REGISTER -->
 <h3>Register With Referral</h3>
 <input id="ref" placeholder="Enter Referral Address" />
 <br>
@@ -51,28 +45,27 @@
 
 <hr>
 
-<!-- USER DASHBOARD -->
 <h2>📊 USER DASHBOARD</h2>
-
 <p>Your ID: <span id="uid">-</span></p>
 <p>Your Earnings: <span id="earn">0</span> BNB</p>
-
 <button id="withdrawBtn">Withdraw Earnings</button>
 
 <hr>
 
-<!-- NETWORK STATS -->
 <h3>🌐 Network Stats</h3>
 <button id="totalUsersBtn">Show Total Users</button>
 <p>Total Users: <span id="tusers">0</span></p>
 
 <hr>
 
-<!-- REFERRAL LINK -->
 <h3>Your Referral Link</h3>
 <p id="refBox"></p>
 
-<!-- MAIN SCRIPT -->
+<hr>
+
+<h3>👥 My Direct Referrals</h3>
+<div id="myRefs">Loading...</div>
+
 <script src="script.js"></script>
 
 </body>
