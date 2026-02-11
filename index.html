@@ -1,62 +1,88 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TRK Matrix DApp</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-  <style>
-    body{
-      font-family: Arial;
-      background:#0d1117;
-      color:white;
-      text-align:center;
-      padding:30px;
-    }
-    button{
-      padding:10px 20px;
-      margin:10px;
-      font-size:16px;
-      background:#00ff99;
-      border:none;
-      cursor:pointer;
-    }
-    input{
-      padding:10px;
-      width:300px;
-    }
-    .box{
-      border:1px solid #00ff99;
-      padding:15px;
-      margin:15px auto;
-      width:350px;
-    }
-  </style>
+    <title>TRK Admin DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        body{font-family:Arial;background:#0d1117;color:#fff;text-align:center}
+        button{padding:10px 20px;margin:5px}
+        input{padding:8px;width:320px}
+        .box{border:1px solid #333;padding:15px;margin:15px}
+        table{width:100%;margin-top:10px}
+        td,th{border:1px solid #444;padding:6px}
+    </style>
 </head>
-
 <body>
 
-<h2>TRK Referral Matrix</h2>
+<h2>TRK ADMIN PANEL</h2>
 
 <button onclick="connectWallet()">Connect Wallet</button>
-<div id="wallet"></div>
+<p id="wallet"></p>
 
 <div class="box">
-  <h3>Register</h3>
-  <input id="ref" placeholder="Referrer Address"><br>
-  <button onclick="registerUser()">Register (0.01 BNB)</button>
+    <h3>Live Stats</h3>
+    <button onclick="loadStats()">Refresh</button>
+    <p>Total Users: <span id="tusers">0</span></p>
+    <p>Contract Balance: <span id="cbal">0</span> BNB</p>
 </div>
 
 <div class="box">
-  <h3>User Info</h3>
-  ID: <span id="uid">-</span><br><br>
-  Partners: <span id="partners">-</span><br><br>
-  Level 1 Income: <span id="l1">-</span><br><br>
-  Level 2 Income: <span id="l2">-</span><br><br>
-  Level 3 Income: <span id="l3">-</span><br><br>
-  Total Earnings: <span id="total">-</span><br><br>
-  <button onclick="withdrawEarnings()">Withdraw Earnings</button>
+    <h3>All Users (Admin View)</h3>
+    <button onclick="loadAllUsers()">Load Users</button>
+    <table id="usersTable">
+        <tr>
+            <th>ID</th>
+            <th>Address</th>
+            <th>Earnings</th>
+        </tr>
+    </table>
 </div>
 
-<script src="script.js"></script>
+<script>
+let provider, signer, contract;
+
+const contractAddress = "0xD19FF9d99D2e2B6Fec385d6276e93e4DceCc63dA";
+
+const abi = [
+ "function userCount() view returns(uint256)",
+ "function idToAddress(uint256) view returns(address)",
+ "function checkEarnings(address) view returns(uint256)"
+];
+
+async function connectWallet(){
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    const addr = await signer.getAddress();
+    document.getElementById("wallet").innerText = addr;
+    contract = new ethers.Contract(contractAddress, abi, signer);
+}
+
+async function loadStats(){
+    const count = await contract.userCount();
+    document.getElementById("tusers").innerText = count;
+
+    const bal = await provider.getBalance(contractAddress);
+    document.getElementById("cbal").innerText =
+        ethers.utils.formatEther(bal);
+}
+
+async function loadAllUsers(){
+    const count = await contract.userCount();
+    const table = document.getElementById("usersTable");
+
+    for(let i=1;i<=count;i++){
+        const addr = await contract.idToAddress(i);
+        const earn = await contract.checkEarnings(addr);
+
+        const row = table.insertRow();
+        row.insertCell(0).innerText = i;
+        row.insertCell(1).innerText = addr;
+        row.insertCell(2).innerText =
+            ethers.utils.formatEther(earn);
+    }
+}
+</script>
 
 </body>
 </html>
