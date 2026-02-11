@@ -1,73 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>TRK Blockchain Referral</title>
-
+  <title>TRK Matrix DApp</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-
   <style>
     body{
-      margin:0;
       font-family: Arial;
       background:#0d1117;
       color:white;
-      display:flex;
-      justify-content:center;
+      text-align:center;
+      padding:30px;
+    }
+    button{
+      padding:10px 20px;
+      margin:10px;
+      font-size:16px;
+      background:#00ff99;
+      border:none;
+      cursor:pointer;
+    }
+    input{
+      padding:10px;
+      width:300px;
     }
     .box{
-      width:420px;
-      margin-top:40px;
-      background:#161b22;
-      padding:25px;
-      border-radius:12px;
-      text-align:center;
+      border:1px solid #00ff99;
+      padding:15px;
+      margin:15px auto;
+      width:350px;
     }
-    button,input{
-      width:100%;
-      padding:12px;
-      margin-top:10px;
-      border:none;
-      border-radius:6px;
-      font-size:16px;
-    }
-    button{ background:#00ff99; font-weight:bold; }
-    hr{ margin:20px 0; }
   </style>
 </head>
 
 <body>
 
+<h2>TRK Referral Matrix</h2>
+
+<button onclick="connectWallet()">Connect Wallet</button>
+<div id="wallet"></div>
+
 <div class="box">
-  <h2>TRK Referral DApp</h2>
+  <h3>Register</h3>
+  <input id="ref" placeholder="Referrer Address"><br>
+  <button onclick="registerUser()">Register (0.01 BNB)</button>
+</div>
 
-  <button id="connectBtn">Connect Wallet</button>
-  <p id="wallet"></p>
-  <div id="refBox"></div>
-
-  <input id="ref" placeholder="Referral Address"/>
-  <button id="registerBtn">Register</button>
-  <button id="withdrawBtn">Withdraw</button>
-
-  <p>User ID: <span id="uid">-</span></p>
-  <p>Earnings: <span id="earn">0</span> ETH</p>
-
-  <hr>
-
-  <h3>Admin Panel</h3>
-
-  <button id="totalUsersBtn">Total Users</button>
-  <button id="contractBalBtn">Contract Balance</button>
-
-  <p>Total Users: <span id="tusers">-</span></p>
-  <p>Balance: <span id="cbal">0</span> ETH</p>
-
-  <hr>
-
-  <input id="uidInput" placeholder="Enter User ID" />
-  <button id="findUserBtn">Find Wallet By ID</button>
-  <p>Wallet: <span id="foundWallet">-</span></p>
-
+<div class="box">
+  <h3>User Info</h3>
+  ID: <span id="uid">-</span><br><br>
+  Partners: <span id="partners">-</span><br><br>
+  Level 1 Income: <span id="l1">-</span><br><br>
+  Level 2 Income: <span id="l2">-</span><br><br>
+  Level 3 Income: <span id="l3">-</span><br><br>
+  Total Earnings: <span id="total">-</span><br><br>
+  <button onclick="withdrawEarnings()">Withdraw Earnings</button>
 </div>
 
 <script src="script.js"></script>
