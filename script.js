@@ -47,7 +47,6 @@ async function connectWallet() {
 
   contract = new ethers.Contract(contractAddress, abi, signer);
 
-  // Show referral link
   const myRefLink = window.location.origin + "/?ref=" + address;
   document.getElementById("refBox").innerHTML =
     "Your Referral Link:<br><a href='"+myRefLink+"' target='_blank'>"+myRefLink+"</a>";
@@ -66,11 +65,7 @@ async function registerUser() {
 
   try {
     const fee = await contract.joinFee();
-
-    const tx = await contract.register(ref, {
-      value: fee
-    });
-
+    const tx = await contract.register(ref, { value: fee });
     await tx.wait();
     alert("Registered Successfully!");
   } catch (err) {
