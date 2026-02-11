@@ -1,88 +1,68 @@
 let provider, signer, contract;
 
-const contractAddress = "0x5bE77c19C693b9A221B725c5ff2b7dB015a0c996";
+const contractAddress = "0xD19FF9d99D2e2B6Fec385d6276e93e4DceCc63dA";
 
 const abi = [
   "function register(address _referrer) payable",
-  "function joinFee() view returns(uint256)",
-  "function getUser(address) view returns(uint256,address,uint256,bool)",
-  "function checkEarnings(address) view returns(uint256)",
-  "function withdraw()",
-  "function userCount() view returns(uint256)",
-  "function idToAddress(uint256) view returns(address)"
+  "function getUser(address) view returns(uint,address,uint,uint,uint,uint,uint)",
+  "function withdraw()"
 ];
 
-function getRef() {
-  const url = new URLSearchParams(window.location.search);
-  return url.get("ref");
-}
-
-window.onload = () => {
-  document.getElementById("connectBtn").onclick = connectWallet;
-  document.getElementById("registerBtn").onclick = registerUser;
-  document.getElementById("withdrawBtn").onclick = withdraw;
-  document.getElementById("totalUsersBtn").onclick = totalUsers;
-  document.getElementById("contractBalBtn").onclick = balance;
-  document.getElementById("findUserBtn").onclick = findWallet;
-
-  const r = getRef();
-  if(r) document.getElementById("ref").value = r;
-};
-
-async function connectWallet(){
-  provider = new ethers.providers.Web3Provider(window.ethereum);
-  await provider.send("eth_requestAccounts",[]);
-  signer = provider.getSigner();
-  contract = new ethers.Contract(contractAddress, abi, signer);
-
-  const addr = await signer.getAddress();
-  document.getElementById("wallet").innerText = addr;
-
-  document.getElementById("refBox").innerHTML =
-    `Your Link:<br>${location.origin}/?ref=${addr}`;
-
-  load(addr);
-  setInterval(()=>load(addr),4000);
-}
-
-async function registerUser(){
-  const ref = document.getElementById("ref").value;
-  const fee = await contract.joinFee();
-  const tx = await contract.register(ref,{value:fee});
-  await tx.wait();
-  alert("Registered");
-}
-
-async function load(a){
-  const u = await contract.getUser(a);
-  const e = await contract.checkEarnings(a);
-  document.getElementById("uid").innerText = u[0];
-  document.getElementById("earn").innerText =
-    ethers.utils.formatEther(e);
-}
-
-async function withdraw(){
-  await contract.withdraw();
-  alert("Withdraw Done");
-}
-
-async function totalUsers(){
-  const c = await contract.userCount();
-  document.getElementById("tusers").innerText = c;
-}
-
-async function balance(){
-  const b = await provider.getBalance(contractAddress);
-  document.getElementById("cbal").innerText =
-    ethers.utils.formatEther(b);
-}
-
-async function findWallet(){
-  const id = document.getElementById("uidInput").value;
-  if(!id){
-    alert("Enter ID");
+async function connectWallet() {
+  if (typeof window.ethereum === 'undefined') {
+    alert("Install MetaMask");
     return;
   }
-  const addr = await contract.idToAddress(id);
-  document.getElementById("foundWallet").innerText = addr;
+
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = provider.getSigner();
+  const address = await signer.getAddress();
+
+  document.getElementById("wallet").innerText = "Connected: " + address;
+
+  contract = new ethers.Contract(contractAddress, abi, signer);
+
+  loadUserData(address);
+}
+
+async function registerUser() {
+  const ref = document.getElementById("ref").value;
+
+  try {
+    const tx = await contract.register(ref, {
+      value: ethers.utils.parseEther("0.01")
+    });
+    await tx.wait();
+    alert("Registration Successful");
+  } catch (err) {
+    console.error(err);
+    alert("Transaction Failed");
+  }
+}
+
+async function loadUserData(address) {
+  try {
+    const u = await contract.getUser(address);
+
+    document.getElementById("uid").innerText = u[0];
+    document.getElementById("partners").innerText = u[2];
+    document.getElementById("l1").innerText = ethers.utils.formatEther(u[3]);
+    document.getElementById("l2").innerText = ethers.utils.formatEther(u[4]);
+    document.getElementById("l3").innerText = ethers.utils.formatEther(u[5]);
+    document.getElementById("total").innerText = ethers.utils.formatEther(u[6]);
+
+  } catch (e) {
+    console.log("User not registered yet");
+  }
+}
+
+async function withdrawEarnings() {
+  try {
+    const tx = await contract.withdraw();
+    await tx.wait();
+    alert("Withdraw Successful");
+  } catch {
+    alert("Withdraw Failed");
+  }
 }
