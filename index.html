@@ -1,85 +1,112 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>TRK Blockchain DApp</title>
+let provider;
+let signer;
+let contract;
 
-  <!-- Ethers load -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+const contractAddress = "0x5bE77c19C693b9A221B725c5ff2b7dB015a0c996";
 
-  <style>
-    body{
-      font-family: Arial;
-      background:#0d1117;
-      color:white;
-      text-align:center;
-      padding:40px;
-    }
-    button{
-      padding:12px 20px;
-      font-size:18px;
-      background:#00ff99;
-      border:none;
-      cursor:pointer;
-      margin:10px;
-      border-radius:8px;
-    }
-    input{
-      padding:10px;
-      width:320px;
-      font-size:16px;
-      margin:10px;
-      border-radius:6px;
-      border:none;
-    }
-    .box{
-      margin-top:25px;
-      font-size:18px;
-      background:#161b22;
-      padding:20px;
-      border-radius:10px;
-      display:inline-block;
-    }
-    a{ color:#00ff99; }
-  </style>
-</head>
+const abi = [
+  "function register(address _referrer) payable",
+  "function joinFee() view returns(uint256)",
+  "function getUser(address) view returns(uint256,address,uint256,bool)",
+  "function checkEarnings(address) view returns(uint256)",
+  "function withdraw()",
+  "function userCount() view returns(uint256)",
+  "function idToAddress(uint256) view returns(address)"
+];
 
-<body>
+function getRefFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("ref");
+}
 
-<h1>⛓ TRK Blockchain Referral DApp</h1>
+window.addEventListener('load', () => {
+  document.getElementById("connectBtn").onclick = connectWallet;
+  document.getElementById("registerBtn").onclick = registerUser;
+  document.getElementById("withdrawBtn").onclick = withdrawEarnings;
+  document.getElementById("totalUsersBtn").onclick = getTotalUsers;
+  document.getElementById("contractBalBtn").onclick = getContractBalance;
 
-<p>
-Welcome to TRK earning system.<br>
-Step 1: Connect Wallet → Step 2: Register → Step 3: Share Referral Link<br>
-Joining Fee: <b>0.01 ETH</b>
-</p>
+  const urlRef = getRefFromURL();
+  if (urlRef) {
+    document.getElementById("ref").value = urlRef;
+  }
+});
 
-<button id="connectBtn">Connect Wallet</button>
-<div id="wallet"></div>
+async function connectWallet() {
+  if (typeof window.ethereum === 'undefined') {
+    alert("Install MetaMask");
+    return;
+  }
 
-<div id="refBox"></div>
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = provider.getSigner();
 
-<br>
+  const address = await signer.getAddress();
+  document.getElementById("wallet").innerHTML = "Connected: " + address;
 
-<input id="ref" placeholder="Referral Address" />
-<br>
-<button id="registerBtn">Register</button>
-<button id="withdrawBtn">Withdraw Earnings</button>
+  contract = new ethers.Contract(contractAddress, abi, signer);
 
-<div class="box">
-  <p>User ID: <span id="uid">-</span></p>
-  <p>Earnings: <span id="earn">0</span> ETH</p>
-</div>
+  // Show referral link
+  const myRefLink = window.location.origin + "/?ref=" + address;
+  document.getElementById("refBox").innerHTML =
+    "Your Referral Link:<br><a href='"+myRefLink+"' target='_blank'>"+myRefLink+"</a>";
 
-<hr>
+  loadUserData(address);
+  setInterval(() => loadUserData(address), 5000);
+}
 
-<h2>Admin Panel</h2>
-<button id="totalUsersBtn">Total Users</button>
-<button id="contractBalBtn">Contract Balance</button>
+async function registerUser() {
+  if (!contract) {
+    alert("Connect wallet first");
+    return;
+  }
 
-<p>Total Users: <span id="tusers">-</span></p>
-<p>Contract Balance: <span id="cbal">0</span> ETH</p>
+  const ref = document.getElementById("ref").value;
 
-<script src="script.js"></script>
+  try {
+    const fee = await contract.joinFee();
 
-</body>
-</html>
+    const tx = await contract.register(ref, {
+      value: fee
+    });
+
+    await tx.wait();
+    alert("Registered Successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Transaction Failed");
+  }
+}
+
+async function loadUserData(address) {
+  try {
+    const user = await contract.getUser(address);
+    const earnings = await contract.checkEarnings(address);
+
+    document.getElementById("uid").innerText = user[0];
+    document.getElementById("earn").innerText =
+      ethers.utils.formatEther(earnings);
+  } catch {}
+}
+
+async function withdrawEarnings() {
+  try {
+    const tx = await contract.withdraw();
+    await tx.wait();
+    alert("Withdraw Successful");
+  } catch {
+    alert("Withdraw Failed");
+  }
+}
+
+async function getTotalUsers() {
+  const count = await contract.userCount();
+  document.getElementById("tusers").innerText = count;
+}
+
+async function getContractBalance() {
+  const bal = await provider.getBalance(contractAddress);
+  document.getElementById("cbal").innerText =
+    ethers.utils.formatEther(bal);
+}
