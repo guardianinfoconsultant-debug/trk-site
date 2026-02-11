@@ -32,6 +32,7 @@
       font-size:16px;
     }
     button{ background:#00ff99; font-weight:bold; }
+    hr{ margin:20px 0; }
   </style>
 </head>
 
@@ -53,11 +54,20 @@
 
   <hr>
 
+  <h3>Admin Panel</h3>
+
   <button id="totalUsersBtn">Total Users</button>
   <button id="contractBalBtn">Contract Balance</button>
 
   <p>Total Users: <span id="tusers">-</span></p>
   <p>Balance: <span id="cbal">0</span> ETH</p>
+
+  <hr>
+
+  <input id="uidInput" placeholder="Enter User ID" />
+  <button id="findUserBtn">Find Wallet By ID</button>
+  <p>Wallet: <span id="foundWallet">-</span></p>
+
 </div>
 
 <script src="script.js"></script>
