@@ -1,77 +1,77 @@
 let provider;
 let signer;
 let contract;
-let userAddress;
 
-const contractAddress = "0x624aeF4426b56B4B2799971Dc81D166804F0cD99";
+const contractAddress = "0x5bE77c19C693b9A221B725c5ff2b7dB015a0c996";
 
 const abi = [
-  {
-    "inputs":[{"internalType":"address","name":"_referrer","type":"address"}],
-    "name":"register",
-    "outputs":[],
-    "stateMutability":"nonpayable",
-    "type":"function"
-  },
-  {
-    "inputs":[{"internalType":"address","name":"","type":"address"}],
-    "name":"users",
-    "outputs":[
-      {"internalType":"address","name":"referrer","type":"address"},
-      {"internalType":"bool","name":"registered","type":"bool"}
-    ],
-    "stateMutability":"view",
-    "type":"function"
-  }
+  "function register(address _referrer) payable",
+  "function checkEarnings(address user) view returns(uint)",
+  "function withdraw()",
+  "function joinFee() view returns(uint)"
 ];
 
+window.addEventListener('load', () => {
+  document.getElementById("connectBtn").onclick = connectWallet;
+  document.getElementById("registerBtn").onclick = registerUser;
+  document.getElementById("earnBtn").onclick = checkEarnings;
+  document.getElementById("withdrawBtn").onclick = withdrawEarnings;
+});
+
 async function connectWallet() {
-  if (window.ethereum) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
-    userAddress = await signer.getAddress();
-
-    document.getElementById("wallet").innerHTML = "Connected: " + userAddress;
-
-    contract = new ethers.Contract(contractAddress, abi, signer);
-
-    // Referral link
-    const link = window.location.origin + "/?ref=" + userAddress;
-    document.getElementById("reflink").innerHTML = link;
-
-    // Auto fill ref from URL
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get("ref");
-    if(ref){
-      document.getElementById("ref").value = ref;
-    }
-
-  } else {
+  if (typeof window.ethereum === 'undefined') {
     alert("Install MetaMask");
+    return;
   }
+
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = provider.getSigner();
+
+  const address = await signer.getAddress();
+  document.getElementById("wallet").innerHTML = "Connected: " + address;
+
+  contract = new ethers.Contract(contractAddress, abi, signer);
 }
 
 async function registerUser() {
+  if (!contract) return alert("Connect wallet first");
+
   const ref = document.getElementById("ref").value;
 
   try {
-    const tx = await contract.register(ref);
+    const fee = await contract.joinFee();
+
+    const tx = await contract.register(ref, { value: fee });
     await tx.wait();
+
     alert("Registered Successfully!");
   } catch (err) {
+    console.error(err);
     alert("Transaction Failed");
   }
 }
 
-async function checkUser() {
-  const data = await contract.users(userAddress);
+async function checkEarnings() {
+  if (!contract) return alert("Connect wallet first");
 
-  if(data.registered){
-    document.getElementById("status").innerHTML =
-      "✅ Registered<br>Referrer: " + data.referrer;
-  } else {
-    document.getElementById("status").innerHTML =
-      "❌ Not Registered";
+  const address = await signer.getAddress();
+  const earn = await contract.checkEarnings(address);
+
+  document.getElementById("earnings").innerHTML =
+    "Your Earnings: " + ethers.utils.formatEther(earn) + " ETH";
+}
+
+async function withdrawEarnings() {
+  if (!contract) return alert("Connect wallet first");
+
+  try {
+    const tx = await contract.withdraw();
+    await tx.wait();
+
+    alert("Withdraw Successful!");
+  } catch (err) {
+    console.error(err);
+    alert("Withdraw Failed");
   }
 }
