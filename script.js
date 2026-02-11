@@ -10,7 +10,8 @@ const abi = [
   "function getUser(address) view returns(uint256,address,uint256,bool)",
   "function checkEarnings(address) view returns(uint256)",
   "function withdraw()",
-  "function userCount() view returns(uint256)"
+  "function userCount() view returns(uint256)",
+  "function idToAddress(uint256) view returns(address)"
 ];
 
 function getRefFromURL() {
@@ -22,6 +23,8 @@ window.addEventListener('load', () => {
   document.getElementById("connectBtn").onclick = connectWallet;
   document.getElementById("registerBtn").onclick = registerUser;
   document.getElementById("withdrawBtn").onclick = withdrawEarnings;
+  document.getElementById("totalUsersBtn").onclick = getTotalUsers;
+  document.getElementById("contractBalBtn").onclick = getContractBalance;
 
   const urlRef = getRefFromURL();
   if (urlRef) {
@@ -45,7 +48,6 @@ async function connectWallet() {
   contract = new ethers.Contract(contractAddress, abi, signer);
 
   loadUserData(address);
-
   setInterval(() => loadUserData(address), 5000);
 }
 
@@ -91,4 +93,15 @@ async function withdrawEarnings() {
   } catch {
     alert("Withdraw Failed");
   }
+}
+
+async function getTotalUsers() {
+  const count = await contract.userCount();
+  document.getElementById("tusers").innerText = count;
+}
+
+async function getContractBalance() {
+  const bal = await provider.getBalance(contractAddress);
+  document.getElementById("cbal").innerText =
+    ethers.utils.formatEther(bal);
 }
