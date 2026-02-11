@@ -3,8 +3,8 @@
 <head>
   <title>TRK Blockchain DApp</title>
 
-  <!-- ✅ Ethers FIRST load hoga -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <!-- ✅ Ethers FIRST load karo -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
   <style>
     body{
@@ -34,7 +34,7 @@
 
 <h1>⛓ TRK Blockchain</h1>
 
-<button id="connectBtn">Connect Wallet</button>
+<button onclick="connectWallet()">Connect Wallet</button>
 
 <div id="wallet"></div>
 
@@ -42,9 +42,9 @@
 
 <input id="ref" placeholder="Enter Referral Address" />
 <br>
-<button id="registerBtn">Register</button>
+<button onclick="registerUser()">Register</button>
 
-<!-- ✅ Script LAST me load hoga -->
+<!-- script LAST me -->
 <script src="script.js"></script>
 
 </body>
