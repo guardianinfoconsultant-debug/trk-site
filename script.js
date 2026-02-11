@@ -14,8 +14,13 @@ const abi = [
   }
 ];
 
+window.addEventListener('load', () => {
+  document.getElementById("connectBtn").addEventListener("click", connectWallet);
+  document.getElementById("registerBtn").addEventListener("click", registerUser);
+});
+
 async function connectWallet() {
-  if (window.ethereum) {
+  if (typeof window.ethereum !== 'undefined') {
     provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
@@ -45,6 +50,7 @@ async function registerUser() {
     await tx.wait();
     alert("Registered Successfully!");
   } catch (err) {
+    console.error(err);
     alert("Transaction Failed");
   }
 }
