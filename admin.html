@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TRK Admin Panel</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+</head>
+<body style="font-family: Arial; padding:20px">
+
+<h2>TRK ADMIN PANEL</h2>
+
+<button onclick="connect()">Connect Admin Wallet</button>
+<p id="adminWallet"></p>
+
+<hr>
+
+<h3>Contract Stats</h3>
+<button onclick="getStats()">Load Stats</button>
+<p>Total Users: <span id="users">0</span></p>
+<p>Contract Balance: <span id="balance">0</span> BNB</p>
+
+<hr>
+
+<h3>Check Any User</h3>
+<input id="checkAddr" placeholder="Wallet address">
+<button onclick="checkUser()">Check</button>
+
+<p>User ID: <span id="uid"></span></p>
+<p>Referrer: <span id="ref"></span></p>
+<p>Earnings: <span id="earn"></span></p>
+
+<hr>
+
+<h3>All Users List</h3>
+<button onclick="loadAllUsers()">Load All</button>
+<div id="allUsers"></div>
+
+<script>
+let provider, signer, contract;
+
+const address = "0xf5e3A22fFC6A30BC83950CF81e890CA42908648F";
+
+const abi = [
+ "function getUser(address) view returns(uint,address,uint,bool)",
+ "function checkEarnings(address) view returns(uint)",
+ "function userCountView() view returns(uint)",
+ "function idToAddress(uint) view returns(address)"
+];
+
+async function connect(){
+ provider = new ethers.providers.Web3Provider(window.ethereum);
+ await provider.send("eth_requestAccounts", []);
+ signer = provider.getSigner();
+ document.getElementById("adminWallet").innerText =
+   await signer.getAddress();
+
+ contract = new ethers.Contract(address, abi, signer);
+}
+
+async function getStats(){
+ const users = await contract.userCountView();
+ const bal = await provider.getBalance(address);
+
+ document.getElementById("users").innerText = users;
+ document.getElementById("balance").innerText =
+   ethers.utils.formatEther(bal);
+}
+
+async function checkUser(){
+ const a = document.getElementById("checkAddr").value;
+
+ const u = await contract.getUser(a);
+ const e = await contract.checkEarnings(a);
+
+ document.getElementById("uid").innerText = u[0];
+ document.getElementById("ref").innerText = u[1];
+ document.getElementById("earn").innerText =
+   ethers.utils.formatEther(e);
+}
+
+async function loadAllUsers(){
+ const total = await contract.userCountView();
+ let html = "";
+
+ for(let i=1;i<=total;i++){
+   const addr = await contract.idToAddress(i);
+   html += i + " : " + addr + "<br>";
+ }
+
+ document.getElementById("allUsers").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
