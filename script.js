@@ -4,12 +4,20 @@ let contract;
 
 const contractAddress = "0xbF95259C322c5ec545D53C340d7E208BcC6155B8";
 
+// FULL ABI (important)
 const abi = [
   {
     "inputs":[{"internalType":"address","name":"_referrer","type":"address"}],
     "name":"register",
     "outputs":[],
     "stateMutability":"payable",
+    "type":"function"
+  },
+  {
+    "inputs":[],
+    "name":"joinFee",
+    "outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
+    "stateMutability":"view",
     "type":"function"
   }
 ];
@@ -43,20 +51,17 @@ async function registerUser() {
   const ref = document.getElementById("ref").value;
 
   try {
+    // get correct fee from contract
+    const fee = await contract.joinFee();
+
     const tx = await contract.register(ref, {
-      const fee = await contract.joinFee();
-
-const tx = await contract.register(ref, {
-  value: fee
-});
-
+      value: fee
     });
 
     await tx.wait();
     alert("Registered Successfully!");
   } catch (err) {
     console.error(err);
-    alert("Transaction Failed");
+    alert("Transaction Failed: " + err.message);
   }
 }
-
