@@ -44,7 +44,12 @@ async function registerUser() {
 
   try {
     const tx = await contract.register(ref, {
-      value: ethers.utils.parseEther("0.01")
+      const fee = await contract.joinFee();
+
+const tx = await contract.register(ref, {
+  value: fee
+});
+
     });
 
     await tx.wait();
@@ -54,3 +59,4 @@ async function registerUser() {
     alert("Transaction Failed");
   }
 }
+
