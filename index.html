@@ -3,6 +3,7 @@
 <head>
   <title>TRK Blockchain DApp</title>
 
+  <!-- Ethers load FIRST -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
   <style>
@@ -23,11 +24,8 @@
     }
     input{
       padding:10px;
-      width:320px;
+      width:300px;
       font-size:16px;
-    }
-    .box{
-      margin-top:20px;
     }
   </style>
 </head>
@@ -36,24 +34,21 @@
 
 <h1>⛓ TRK Blockchain</h1>
 
-<button onclick="connectWallet()">Connect Wallet</button>
+<button id="connectBtn">Connect Wallet</button>
 <div id="wallet"></div>
 
-<div class="box">
-  <input id="ref" placeholder="Enter Referral Address" />
-  <br>
-  <button onclick="registerUser()">Register</button>
-</div>
+<br><br>
 
-<div class="box">
-  <button onclick="checkUser()">Check My Status</button>
-  <div id="status"></div>
-</div>
+<input id="ref" placeholder="Enter Referral Address" />
+<br>
+<button id="registerBtn">Register</button>
 
-<div class="box">
-  <h3>Your Referral Link</h3>
-  <div id="reflink"></div>
-</div>
+<br><br>
+
+<button id="earnBtn">Check Earnings</button>
+<button id="withdrawBtn">Withdraw</button>
+
+<h3 id="earnings"></h3>
 
 <script src="script.js"></script>
 
