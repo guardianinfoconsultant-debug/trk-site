@@ -2,14 +2,14 @@
 <html>
 <head>
   <title>TRK Blockchain DApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 </head>
 
 <body style="font-family:Arial;background:#0d1117;color:white;text-align:center;padding:40px;">
 
 <h1>⛓ TRK Blockchain</h1>
 
-<button onclick="connectWallet()">Connect Wallet</button>
-
+<button id="connectBtn">Connect Wallet</button>
 <div id="wallet"></div>
 
 <br><br>
@@ -17,9 +17,54 @@
 <input id="ref" placeholder="Enter Referral Address" style="padding:10px;width:300px;">
 <br><br>
 
-<button onclick="registerUser()">Register</button>
+<button id="registerBtn">Register</button>
 
-<script src="script.js"></script>
+<script>
+let provider;
+let signer;
+let contract;
+
+const contractAddress = "0xbF95259C322c5ec545D53C340d7E208BcC6155B8";
+
+const abi = [
+  {
+    "inputs":[{"internalType":"address","name":"_referrer","type":"address"}],
+    "name":"register",
+    "outputs":[],
+    "stateMutability":"payable",
+    "type":"function"
+  }
+];
+
+document.getElementById("connectBtn").onclick = async () => {
+  if (!window.ethereum) return alert("Install MetaMask");
+
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = provider.getSigner();
+
+  const address = await signer.getAddress();
+  document.getElementById("wallet").innerText = "Connected: " + address;
+
+  contract = new ethers.Contract(contractAddress, abi, signer);
+};
+
+document.getElementById("registerBtn").onclick = async () => {
+  if (!contract) return alert("Connect wallet first");
+
+  const ref = document.getElementById("ref").value;
+
+  try {
+    const tx = await contract.register(ref, {
+      value: ethers.utils.parseEther("0.01")
+    });
+    await tx.wait();
+    alert("Registered Successfully!");
+  } catch (e) {
+    alert("Transaction Failed");
+  }
+};
+</script>
 
 </body>
 </html>
