@@ -10,6 +10,7 @@ const abi = [
   "function checkEarnings(address) view returns(uint)",
   "function withdraw()",
   "function userCountView() view returns(uint)",
+  "function idToAddress(uint) view returns(address)",
   "function joinFee() view returns(uint256)"
 ];
 
@@ -47,9 +48,11 @@ async function connectWallet() {
 
   const myRefLink = window.location.origin + "/?ref=" + address;
   document.getElementById("refBox").innerHTML =
-    "Your Referral Link:<br>" + myRefLink;
+    myRefLink;
 
   loadUserData(address);
+  loadMyReferrals(address);
+
   setInterval(() => loadUserData(address), 5000);
 }
 
@@ -80,7 +83,7 @@ async function loadUserData(address) {
     document.getElementById("uid").innerText = user[0];
     document.getElementById("earn").innerText =
       ethers.utils.formatEther(earnings);
-  } catch (e) {}
+  } catch {}
 }
 
 async function withdrawEarnings() {
@@ -97,6 +100,7 @@ async function getTotalUsers() {
   const count = await contract.userCountView();
   document.getElementById("tusers").innerText = count;
 }
+
 async function loadMyReferrals(myAddress){
   const total = await contract.userCountView();
   let html = "";
@@ -110,6 +114,6 @@ async function loadMyReferrals(myAddress){
     }
   }
 
-  document.getElementById("myRefs").innerHTML = html || "No referrals yet";
+  document.getElementById("myRefs").innerHTML =
+    html || "No referrals yet";
 }
-
