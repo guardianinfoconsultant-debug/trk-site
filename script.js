@@ -1,10 +1,18 @@
-const contractAddress = "0xbF95259C322c5ec545D53C340d7E208BcC6155B8";
-
-const abi = [PASTE_YOUR_ABI_HERE];
-
 let provider;
 let signer;
 let contract;
+
+const contractAddress = "0xbF95259C322c5ec545D53C340d7E208BcC6155B8";
+
+const abi = [
+  {
+    "inputs":[{"internalType":"address","name":"_referrer","type":"address"}],
+    "name":"register",
+    "outputs":[],
+    "stateMutability":"payable",
+    "type":"function"
+  }
+];
 
 async function connectWallet() {
   if (window.ethereum) {
@@ -13,7 +21,7 @@ async function connectWallet() {
     signer = provider.getSigner();
 
     const address = await signer.getAddress();
-    document.getElementById("wallet").innerText = "Connected: " + address;
+    document.getElementById("wallet").innerHTML = "Connected: " + address;
 
     contract = new ethers.Contract(contractAddress, abi, signer);
   } else {
@@ -22,14 +30,21 @@ async function connectWallet() {
 }
 
 async function registerUser() {
+  if (!contract) {
+    alert("Connect wallet first");
+    return;
+  }
+
   const ref = document.getElementById("ref").value;
 
-  const fee = await contract.joinFee();
+  try {
+    const tx = await contract.register(ref, {
+      value: ethers.utils.parseEther("0.01")
+    });
 
-  const tx = await contract.register(ref, {
-    value: fee
-  });
-
-  await tx.wait();
-  alert("Registered Successfully on Blockchain!");
+    await tx.wait();
+    alert("Registered Successfully!");
+  } catch (err) {
+    alert("Transaction Failed");
+  }
 }
