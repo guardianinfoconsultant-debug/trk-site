@@ -97,3 +97,19 @@ async function getTotalUsers() {
   const count = await contract.userCountView();
   document.getElementById("tusers").innerText = count;
 }
+async function loadMyReferrals(myAddress){
+  const total = await contract.userCountView();
+  let html = "";
+
+  for(let i=1;i<=total;i++){
+    const addr = await contract.idToAddress(i);
+    const user = await contract.getUser(addr);
+
+    if(user[1].toLowerCase() === myAddress.toLowerCase()){
+      html += addr + "<br>";
+    }
+  }
+
+  document.getElementById("myRefs").innerHTML = html || "No referrals yet";
+}
+
