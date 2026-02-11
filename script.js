@@ -8,7 +8,8 @@ const abi = [
   "function getUser(address) view returns(uint256,address,uint256,bool)",
   "function checkEarnings(address) view returns(uint256)",
   "function withdraw()",
-  "function userCount() view returns(uint256)"
+  "function userCount() view returns(uint256)",
+  "function idToAddress(uint256) view returns(address)"
 ];
 
 function getRef() {
@@ -22,6 +23,7 @@ window.onload = () => {
   document.getElementById("withdrawBtn").onclick = withdraw;
   document.getElementById("totalUsersBtn").onclick = totalUsers;
   document.getElementById("contractBalBtn").onclick = balance;
+  document.getElementById("findUserBtn").onclick = findWallet;
 
   const r = getRef();
   if(r) document.getElementById("ref").value = r;
@@ -73,4 +75,14 @@ async function balance(){
   const b = await provider.getBalance(contractAddress);
   document.getElementById("cbal").innerText =
     ethers.utils.formatEther(b);
+}
+
+async function findWallet(){
+  const id = document.getElementById("uidInput").value;
+  if(!id){
+    alert("Enter ID");
+    return;
+  }
+  const addr = await contract.idToAddress(id);
+  document.getElementById("foundWallet").innerText = addr;
 }
