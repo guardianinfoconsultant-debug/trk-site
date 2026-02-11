@@ -1,19 +1,69 @@
-body{
-  font-family: Arial;
-  background:#0d1117;
-  color:white;
-  text-align:center;
-  padding:40px;
+let provider, signer, contract;
+
+const address = "0xf5e3A22fFC6A30BC83950CF81e890CA42908648F";
+
+const abi = [
+ "function register(address) payable",
+ "function getUser(address) view returns(uint,address,uint,bool)",
+ "function checkEarnings(address) view returns(uint)",
+ "function withdraw()",
+ "function userCountView() view returns(uint)",
+ "function idToAddress(uint) view returns(address)",
+ "function joinFee() view returns(uint)"
+];
+
+window.onload = () => {
+  connectBtn.onclick = connectWallet;
+  registerBtn.onclick = registerUser;
+  withdrawBtn.onclick = withdraw;
+  totalUsersBtn.onclick = totalUsers;
+};
+
+async function connectWallet(){
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts",[]);
+  signer = provider.getSigner();
+  const user = await signer.getAddress();
+
+  wallet.innerText = user;
+  contract = new ethers.Contract(address,abi,signer);
+
+  refBox.innerText = location.origin + "/?ref=" + user;
+
+  loadData(user);
+  loadRefs(user);
 }
-button{
-  padding:12px 20px;
-  font-size:16px;
-  background:#00ff99;
-  border:none;
-  margin:10px;
-  cursor:pointer;
+
+async function registerUser(){
+  const fee = await contract.joinFee();
+  await (await contract.register(ref.value,{value:fee})).wait();
+  alert("Registered");
 }
-input{
-  padding:10px;
-  width:300px;
+
+async function loadData(u){
+  const d = await contract.getUser(u);
+  const e = await contract.checkEarnings(u);
+  uid.innerText = d[0];
+  earn.innerText = ethers.utils.formatEther(e);
+}
+
+async function withdraw(){
+  await (await contract.withdraw()).wait();
+  alert("Withdrawn");
+}
+
+async function totalUsers(){
+  tusers.innerText = await contract.userCountView();
+}
+
+async function loadRefs(me){
+  let html="";
+  const total = await contract.userCountView();
+  for(let i=1;i<=total;i++){
+    const a = await contract.idToAddress(i);
+    const u = await contract.getUser(a);
+    if(u[1].toLowerCase()==me.toLowerCase())
+      html+=a+"<br>";
+  }
+  myRefs.innerHTML=html;
 }
