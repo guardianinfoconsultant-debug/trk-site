@@ -1,46 +1,33 @@
-let provider;
-let contract;
+let provider, signer, contract;
 
-const contractAddress = "0xf5e3A22fFC6A30BC83950CF81e890CA42908648F";
+const address = "0xf5e3A22fFC6A30BC83950CF81e890CA42908648F";
 
 const abi = [
-  "function userCount() view returns(uint256)",
-  "function getUser(address) view returns(uint256,address,uint256,bool)",
-  "function checkEarnings(address) view returns(uint256)"
+ "function getUser(address) view returns(uint,address,uint,bool)",
+ "function checkEarnings(address) view returns(uint)",
+ "function userCountView() view returns(uint)",
+ "function idToAddress(uint) view returns(address)"
 ];
 
-window.onload = async () => {
-  if (typeof window.ethereum === "undefined") {
-    alert("Install MetaMask");
-    return;
-  }
-
+async function connect(){
   provider = new ethers.providers.Web3Provider(window.ethereum);
-  await provider.send("eth_requestAccounts", []);
-  const signer = provider.getSigner();
-
-  contract = new ethers.Contract(contractAddress, abi, signer);
-
-  loadDashboard();
-};
-
-async function loadDashboard() {
-  const totalUsers = await contract.userCount();
-  document.getElementById("totalUsers").innerText = totalUsers;
-
-  const balance = await provider.getBalance(contractAddress);
-  document.getElementById("contractBalance").innerText =
-    ethers.utils.formatEther(balance);
+  await provider.send("eth_requestAccounts",[]);
+  signer = provider.getSigner();
+  adminWallet.innerText = await signer.getAddress();
+  contract = new ethers.Contract(address,abi,signer);
 }
 
-async function checkUser() {
-  const userAddress = document.getElementById("userAddress").value;
+async function getStats(){
+  users.innerText = await contract.userCountView();
+  balance.innerText = ethers.utils.formatEther(
+    await provider.getBalance(address)
+  );
+}
 
-  const user = await contract.getUser(userAddress);
-  const earnings = await contract.checkEarnings(userAddress);
-
-  document.getElementById("uid").innerText = user[0];
-  document.getElementById("referrer").innerText = user[1];
-  document.getElementById("earnings").innerText =
-    ethers.utils.formatEther(earnings);
+async function checkUser(){
+  const u = await contract.getUser(checkAddr.value);
+  const e = await contract.checkEarnings(checkAddr.value);
+  uid.innerText = u[0];
+  ref.innerText = u[1];
+  earn.innerText = ethers.utils.formatEther(e);
 }
